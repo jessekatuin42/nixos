@@ -1,0 +1,84 @@
+{ config, lib, pkgs, ... }:
+
+{
+  imports =
+    [ ./hardware-configuration.nix ];
+
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  networking.hostName = "nixos";
+  networking.networkmanager.enable = true;
+
+  time.timeZone = "Europe/Amsterdam";
+
+  console = {
+    font = "Lat2-Terminus16";
+    keyMap = "us";
+  };
+
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    jack.enable = true;
+  };
+
+  hardware.pulseaudio.enable = false;
+
+  services.libinput.enable = true;
+
+  users.users.jesse = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" ];
+    openssh.authorizedKeys.keys = [
+      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC99p82DXKFQ8fRGQQ2Yy/WaRkBWz4HbI0ymXochHDyrQ09AhP+/HnGYh1hNKg3jfC5LQ7zRDbocn3mmD1WKVu4AJMU2eCpDJNCjO1H6CXPhLusdVD1N2i61dGqwO/9cf2PhAkgrEjaQD1hWZ9T4Joy95/I/88czVWDQdJPj/SNIF9er/n7zfa7IIRkXrZLwuANg9cfZ8CDEL8eRSWqhX0HX5aLmdz1tvqx/KDD9dSAECiceg6TTPwWWJv9P3bvuaKK8qwQ5R3McWHSDvuuCIE7vp/iz7xSHYhMxc98jwtZDLw1tlFGo1E4X8K6I+0O0PNHDdlkXt/5Ph4B1V/g8F2C/Uc8CTOM6gjqgESjV5SpUZjnSH8ByOp8C+wi56ChKdqZN+m5g8ej0wR0gTwu70+PkMznH/3XHwvX9gT3MH2bIB0jbMim0gT9XeVPTiMfMr1yJr11tiqRvFe72tEw3fmY8y8GmEZp7Ga68sQTmXe1LpJ8XY8LPhgwbk0EN4vBlik= jesse@DESKTOP-50J98N6"
+    ];
+  };
+
+  environment.systemPackages = with pkgs; [
+    vim
+    wget
+    neofetch
+    git
+    htop
+    (pkgs.waybar.overrideAttrs (oldAttrs: {
+      mesonFlags = oldAttrs.mesonFlags ++ [ "-Dexperimental=true" ];
+    }))
+  ];
+
+  services.openssh.enable = true;
+  networking.firewall.enable = false;
+
+  nixpkgs.config.allowUnfree = true;
+
+  services.xserver = {
+    enable = true;
+    displayManager.gdm.enable = true;
+    desktopManager.gnome.enable = true;
+    displayManager.gdm.wayland = true;
+  };
+
+  # Temporarily disable xdg-desktop-portal-gtk to resolve conflicts
+  xdg.portal.enable = true;
+  xdg.portal.extraPortals = [];  # This line disables the additional portals
+
+  environment.sessionVariables = {
+    WLR_NO_HARDWARE_CURSORS = "1";
+    NIXOS_OZONE_WL = "1";
+  };
+
+  hardware = {
+    graphics.enable = true;
+    nvidia.modesetting.enable = true;
+  };
+
+  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
+  };
+
+  system.stateVersion = "24.05";
+}
+
